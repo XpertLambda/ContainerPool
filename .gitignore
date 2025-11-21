@@ -1,0 +1,39 @@
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask
+instance/
+.webassets-cache
+user_files/
+pool_config.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vagrant
+.vagrant/
+*.log
+
+# Ansible
+*.retry

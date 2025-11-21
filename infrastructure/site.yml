@@ -1,0 +1,187 @@
+---
+- name: Provision PaaS Platform
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    app_user: vagrant
+    app_dir: /opt/my-paas
+    venv_dir: "{{ app_dir }}/venv"
+    
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+      
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3
+          - python3-pip
+          - python3-venv
+          - python3-virtualenv
+        state: present
+      when: ansible_os_family == "Debian"
+      
+    - name: Create directory for Docker GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+        
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        keyring: /etc/apt/keyrings/docker.gpg
+        state: present
+      when: ansible_os_family == "Debian"
+      
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+      when: ansible_os_family == "Debian"
+      
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      
+    - name: Ensure Docker service is running and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+        
+    - name: Add user to docker group
+      user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: yes
+      register: docker_group_added
+        
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+        
+    - name: Copy application files to VM
+      synchronize:
+        src: /vagrant/app/
+        dest: "{{ app_dir }}/"
+      delegate_to: "{{ inventory_hostname }}"
+      become_user: "{{ app_user }}"
+      
+    - name: Set ownership of app directory
+      file:
+        path: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        recurse: yes
+        
+    - name: Create Python virtual environment
+      command: python3 -m venv "{{ venv_dir }}"
+      args:
+        creates: "{{ venv_dir }}/bin/activate"
+      become_user: "{{ app_user }}"
+      
+    - name: Upgrade pip in virtual environment
+      pip:
+        name: pip
+        state: latest
+        virtualenv: "{{ venv_dir }}"
+        virtualenv_command: python3 -m venv
+      become_user: "{{ app_user }}"
+      
+    - name: Install Python requirements in virtual environment
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+        virtualenv_command: python3 -m venv
+      become_user: "{{ app_user }}"
+      
+    - name: Install Docker Python SDK system-wide for Ansible
+      pip:
+        name:
+          - docker
+          - requests
+        state: present
+        executable: pip3
+      
+    - name: Create systemd service file for Flask app
+      copy:
+        dest: /etc/systemd/system/paas-app.service
+        content: |
+          [Unit]
+          Description=PaaS Platform Flask Application
+          After=network.target docker.service
+          Requires=docker.service
+          
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_user }}
+          WorkingDirectory={{ app_dir }}
+          Environment="PATH={{ venv_dir }}/bin"
+          ExecStart={{ venv_dir }}/bin/python {{ app_dir }}/app.py
+          Restart=on-failure
+          RestartSec=10
+          
+          [Install]
+          WantedBy=multi-user.target
+        mode: '0644'
+        
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+        
+    - name: Enable and start Flask app service
+      systemd:
+        name: paas-app
+        state: started
+        enabled: yes
+    
+    - name: Restart Flask app to ensure Docker socket access
+      systemd:
+        name: paas-app
+        state: restarted
+      # Always restart after first start to pick up docker group membership
+        
+    - name: Pull common Docker images
+      docker_image:
+        name: "{{ item }}"
+        source: pull
+      become_user: "{{ app_user }}"
+      loop:
+        - nginx:alpine
+        - httpd:alpine
+        - node:18-alpine
+        - python:3.11-alpine
+        - redis:alpine
+      
+    - name: Display access information
+      debug:
+        msg:
+          - "Platform deployment completed successfully!"
+          - "Access the application at: http://localhost:5000"
+          - "Or check VM IP with: vagrant ssh -c 'hostname -I'"
+          - "Available container types: nginx, apache, node, python, wordpress, redis, mysql, postgres"

@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # Use Ubuntu 22.04 LTS box for libvirt provider
+  config.vm.box = "generic/ubuntu2204"
+  
+  # Disable default sync to avoid warnings
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  
+  # Configure the VM for libvirt provider
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.memory = 2048
+    libvirt.cpus = 2
+    libvirt.driver = "kvm"
+    libvirt.connect_via_ssh = false
+    libvirt.management_network_address = "192.168.121.0/24"
+  end
+  
+  # Forward port for Flask app
+  config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "0.0.0.0"
+  
+  # Forward ports for containers (8000-8100)
+  (8000..8100).each do |port|
+    config.vm.network "forwarded_port", guest: port, host: port, host_ip: "0.0.0.0", auto_correct: true
+  end
+  
+  # Sync the app directory (rsync works reliably with libvirt)
+  config.vm.synced_folder "../app", "/vagrant/app", type: "rsync", rsync__exclude: [".git/", "__pycache__/", "*.pyc", "venv/"]
+  
+  # Set hostname
+  config.vm.hostname = "paas-platform"
+  
+  # Provision with Ansible
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "site.yml"
+    ansible.verbose = "v"
+    ansible.extra_vars = {
+      ansible_python_interpreter: "/usr/bin/python3"
+    }
+  end
+end

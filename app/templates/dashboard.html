@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PaaS Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center py-3">
+                <h4 class="mb-0">
+                    <i class="bi bi-speedometer2"></i> Dashboard - Welcome, {{ current_user.username }}!
+                </h4>
+                <a href="{{ url_for('refresh_status') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h5><i class="bi bi-info-circle"></i> About Your PaaS Platform</h5>
+                        <p class="mb-2">
+                            Get instant access to pre-built containers from our pool! Choose from web servers, 
+                            runtimes, databases, and more.
+                        </p>
+                        <div class="alert alert-success mb-2" role="alert">
+                            <i class="bi bi-lightning-charge-fill"></i> <strong>Instant Provisioning:</strong> 
+                            Containers are assigned from a pre-built pool in under 1 second!
+                        </div>
+                        <p class="text-muted mb-0">
+                            <small>
+                                <i class="bi bi-server"></i> Server: 192.168.121.183 | 
+                                <i class="bi bi-box"></i> Your Containers: {{ current_user.containers|length }} |
+                                <i class="bi bi-hdd-stack"></i> Pool System: Active
+                            </small>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#launchModal">
+                            <i class="bi bi-rocket-takeoff"></i> Launch Container
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Launch Container Modal -->
+<div class="modal fade" id="launchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Launch New Container</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('launch') }}">
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-hdd-stack"></i> <strong>Pool System:</strong> 
+                        Containers are pre-built and instantly assigned from our pool. Launch happens in under 1 second!
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="container_name" class="form-label">Container Name (Optional)</label>
+                            <input type="text" class="form-control" id="container_name" name="container_name" 
+                                   placeholder="my-awesome-app">
+                            <div class="form-text">Give your container a friendly name</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="image_type" class="form-label">Container Type</label>
+                            <select class="form-select" id="image_type" name="image_type" required>
+                                <optgroup label="🌐 Web Servers (Instant)">
+                                    <option value="nginx" selected>Nginx - Pool: {{ pool_availability.get('nginx', 0) }} available</option>
+                                    <option value="apache">Apache - Pool: {{ pool_availability.get('apache', 0) }} available</option>
+                                </optgroup>
+                                <optgroup label="⚡ Runtimes (Instant)">
+                                    <option value="node">Node.js - Pool: {{ pool_availability.get('node', 0) }} available</option>
+                                    <option value="python">Python HTTP Server - Pool: {{ pool_availability.get('python', 0) }} available</option>
+                                </optgroup>
+                                <optgroup label="🗄️ Databases">
+                                    <option value="redis">Redis - In-memory data store</option>
+                                    <option value="mysql">MySQL - Database (password: password123)</option>
+                                    <option value="postgres">PostgreSQL - Database (password: password123)</option>
+                                </optgroup>
+                            </select>
+                            <div class="form-text">
+                                <i class="bi bi-lightning-charge"></i> Pre-built containers launch instantly!
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-lightbulb-fill"></i> <strong>Pro Tip:</strong> 
+                                After launching a web server, upload your own HTML/CSS/JS files to customize it instantly!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-lightning-charge-fill"></i> Launch Instantly
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-boxes"></i> Your Containers
+                    <span class="badge bg-light text-dark">{{ current_user.containers|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.containers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="bi bi-tag"></i> Name</th>
+                                    <th><i class="bi bi-hash"></i> ID</th>
+                                    <th><i class="bi bi-disc"></i> Type</th>
+                                    <th><i class="bi bi-signal"></i> Status</th>
+                                    <th><i class="bi bi-diagram-3"></i> Ports</th>
+                                    <th><i class="bi bi-calendar"></i> Created</th>
+                                    <th><i class="bi bi-gear"></i> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for container in current_user.containers %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ container.name }}</strong>
+                                        {% if container.from_pool %}
+                                        <i class="bi bi-hdd-stack text-success" title="From pool - instant provisioning"></i>
+                                        {% endif %}
+                                        {% if container.has_custom_files %}
+                                        <i class="bi bi-file-earmark-code text-primary" title="Has custom files"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code class="small">{{ container.container_id[:12] }}</code>
+                                        {% if container.pool_name %}
+                                        <br><small class="text-muted">{{ container.pool_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ container.image_type }}</span>
+                                        {% if container.from_pool %}
+                                        <br><small class="badge bg-success mt-1">Pool</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if container.status == 'running' %}
+                                            <span class="badge bg-success status-badge">
+                                                <i class="bi bi-play-circle"></i> Running
+                                            </span>
+                                        {% elif container.status == 'stopped' %}
+                                            <span class="badge bg-secondary status-badge">
+                                                <i class="bi bi-stop-circle"></i> Stopped
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning status-badge">
+                                                <i class="bi bi-question-circle"></i> {{ container.status|title }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark">
+                                            {{ container.host_port }} → {{ container.container_port }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if container.status == 'running' %}
+                                            <a href="http://192.168.121.183:{{ container.host_port }}" 
+                                               target="_blank" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-box-arrow-up-right"></i> Open
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ container.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if container.status == 'running' %}
+                                                {% if container.image_type in ['nginx', 'apache', 'node', 'python', 'wordpress'] %}
+                                                <a href="{{ url_for('upload_files', container_id=container.id) }}" 
+                                                   class="btn btn-outline-secondary" title="Upload Files">
+                                                    <i class="bi bi-upload"></i>
+                                                </a>
+                                                {% endif %}
+                                                <a href="http://192.168.121.183:{{ container.host_port }}" 
+                                                   target="_blank" 
+                                                   class="btn btn-outline-primary" title="Open">
+                                                    <i class="bi bi-box-arrow-up-right"></i>
+                                                </a>
+                                                <form method="POST" action="{{ url_for('stop_container', container_id=container.id) }}" 
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Stop container and release back to pool?');">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Stop & Release to Pool">
+                                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form method="POST" action="{{ url_for('stop_container', container_id=container.id) }}" 
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Delete this container?');">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                        <h5 class="mt-3 text-muted">No containers yet</h5>
+                        <p class="text-muted">Click "Launch Container" to get instant access from our pre-built pool!</p>
+                        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#launchModal">
+                            <i class="bi bi-lightning-charge-fill"></i> Launch Your First Container
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-lightning-charge-fill text-info"></i> Container Pool System
+                </h6>
+                <ul class="mb-0 small">
+                    <li><strong>Instant Provisioning:</strong> Containers are pre-built and assigned from a pool in under 1 second</li>
+                    <li><strong>Auto-Release:</strong> When you stop a container, it's automatically returned to the pool for others to use</li>
+                    <li><strong>Pool Capacity:</strong> nginx (5), apache (3), python (3), node (2) - 13 total containers available</li>
+                    <li><strong>Custom Files:</strong> Upload your HTML/CSS/JS to web containers - files persist across restarts</li>
+                    <li><strong>Access URLs:</strong> Containers are accessible at http://192.168.121.183:[port]</li>
+                </ul>
+            </div>
+                    <li>Use "Stop" to terminate and remove a container when you're done</li>
+                    <li>Ports are randomly assigned between 8000-9000 to avoid conflicts</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh status every 30 seconds
+    setTimeout(function() {
+        // Uncomment the line below to enable auto-refresh
+        // window.location.reload();
+    }, 30000);
+</script>
+{% endblock %}
