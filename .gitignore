@@ -37,3 +37,6 @@ Thumbs.db
 
 # Ansible
 *.retry
+
+# box 
+*.box
