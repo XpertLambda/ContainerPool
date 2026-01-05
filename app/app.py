@@ -77,6 +77,12 @@ AVAILABLE_IMAGES = {
         'port': 5432,
         'description': 'PostgreSQL database server',
         'category': 'Database'
+    },
+    'ubuntu-ssh': {
+        'name': 'ubuntu-ssh:latest',
+        'port': 22,
+        'description': 'Ubuntu Linux with SSH access (full shell environment)',
+        'category': 'Linux Machine'
     }
 }
 
@@ -170,7 +176,7 @@ def get_pool_availability():
         return {}
     
     availability = {}
-    for image_type in ['nginx', 'apache', 'node', 'python']:
+    for image_type in ['nginx', 'apache', 'node', 'python', 'ubuntu-ssh']:
         try:
             available = docker_client.containers.list(
                 filters={

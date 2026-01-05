@@ -16,6 +16,7 @@ POOL_CONFIG = {
     'apache': {'count': 3, 'image': 'httpd:alpine', 'port': 80},
     'python': {'count': 3, 'image': 'python:3.11-alpine', 'port': 8000},
     'node': {'count': 2, 'image': 'node:18-alpine', 'port': 3000},
+    'ubuntu-ssh': {'count': 2, 'image': 'ubuntu-ssh:latest', 'port': 22},
 }
 
 def create_pool_container(image_type, pool_index):
@@ -23,12 +24,13 @@ def create_pool_container(image_type, pool_index):
     config = POOL_CONFIG[image_type]
     
     # Generate unique port based on image type and index
-    # nginx: 8000-8004, apache: 8100-8102, python: 8200-8202, node: 8300-8301
+    # nginx: 8000-8004, apache: 8100-8102, python: 8200-8202, node: 8300-8301, ubuntu-ssh: 2200-2201
     type_base_ports = {
         'nginx': 8000,
         'apache': 8100,
         'python': 8200,
-        'node': 8300
+        'node': 8300,
+        'ubuntu-ssh': 2200
     }
     base_port = type_base_ports.get(image_type, 8000) + pool_index
     
@@ -64,10 +66,10 @@ def create_pool_container(image_type, pool_index):
         
         # Create container
         container = client.containers.run(**container_config)
-        print(f"  ✓ Created {image_type} container on port {base_port}")
+        print(f"  [OK] Created {image_type} container on port {base_port}")
         return container.id, base_port
     except Exception as e:
-        print(f"  ✗ Failed to create {image_type} container: {e}")
+        print(f"  [FAILED] Failed to create {image_type} container: {e}")
         return None, None
 
 def initialize_pool():
@@ -99,7 +101,7 @@ def initialize_pool():
                 total_created += 1
         print()
     
-    print(f"✅ Pool initialized: {total_created} containers ready")
+    print(f"[OK] Pool initialized: {total_created} containers ready")
     print()
     return total_created
 
@@ -113,7 +115,7 @@ def show_pool_status():
     pool_containers = client.containers.list(all=True, filters={'label': 'pool=true'})
     
     if not pool_containers:
-        print("❌ No pool containers found. Run with --init to create pool.")
+        print("[ERROR] No pool containers found. Run with --init to create pool.")
         return
     
     # Group by type and status
@@ -146,7 +148,7 @@ def show_pool_status():
     print("Detailed List:")
     print("-" * 80)
     for container in sorted(pool_containers, key=lambda c: c.name):
-        status_icon = "✓" if container.status == 'running' else "✗"
+        status_icon = "[OK]" if container.status == 'running' else "[FAILED]"
         label_status = container.labels.get('status', 'available')
         ports = container.ports
         port_str = ""
@@ -170,7 +172,7 @@ def assign_container(image_type, user_id, container_name):
     )
     
     if not available:
-        print(f"❌ No available {image_type} containers in pool")
+        print(f"[ERROR] No available {image_type} containers in pool")
         return None
     
     container = available[0]
@@ -188,10 +190,10 @@ def assign_container(image_type, user_id, container_name):
             break
     
     if not host_port:
-        print(f"❌ Could not determine port for container {container.name}")
+        print(f"[ERROR] Could not determine port for container {container.name}")
         return None
     
-    print(f"✓ Assigned {container.name} (port {host_port}) to user {user_id}")
+    print(f"[OK] Assigned {container.name} (port {host_port}) to user {user_id}")
     
     return {
         'container_id': container.id,
@@ -216,7 +218,7 @@ if __name__ == '__main__':
                     print(f"  Removed {container.name}")
                 except Exception as e:
                     print(f"  Failed to remove {container.name}: {e}")
-            print(f"✓ Removed {len(containers)} containers")
+            print(f"[OK] Removed {len(containers)} containers")
         else:
             print("Usage:")
             print("  python pool_manager.py --init      # Initialize container pool")

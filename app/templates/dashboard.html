@@ -17,26 +17,26 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-8">
-                        <h5><i class="bi bi-info-circle"></i> About Your PaaS Platform</h5>
+                        <h5>About Your PaaS Platform</h5>
                         <p class="mb-2">
                             Get instant access to pre-built containers from our pool! Choose from web servers, 
                             runtimes, databases, and more.
                         </p>
                         <div class="alert alert-success mb-2" role="alert">
-                            <i class="bi bi-lightning-charge-fill"></i> <strong>Instant Provisioning:</strong> 
+                            <strong>Instant Provisioning:</strong> 
                             Containers are assigned from a pre-built pool in under 1 second!
                         </div>
                         <p class="text-muted mb-0">
                             <small>
-                                <i class="bi bi-server"></i> Server: 192.168.121.183 | 
-                                <i class="bi bi-box"></i> Your Containers: {{ current_user.containers|length }} |
-                                <i class="bi bi-hdd-stack"></i> Pool System: Active
+                                Server: 192.168.121.183 | 
+                                Your Containers: {{ current_user.containers|length }} |
+                                Pool System: Active
                             </small>
                         </p>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#launchModal">
-                            <i class="bi bi-rocket-takeoff"></i> Launch Container
+                            <i class="bi bi-rocket-takeoff-fill"></i> Launch Container
                         </button>
                     </div>
                 </div>
@@ -50,13 +50,13 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Launch New Container</h5>
+                <h5 class="modal-title"><i class="bi bi-rocket-takeoff"></i> Launch New Container</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('launch') }}">
                 <div class="modal-body">
                     <div class="alert alert-info" role="alert">
-                        <i class="bi bi-hdd-stack"></i> <strong>Pool System:</strong> 
+                        <strong>Pool System:</strong> 
                         Containers are pre-built and instantly assigned from our pool. Launch happens in under 1 second!
                     </div>
                     
@@ -71,37 +71,44 @@
                         <div class="col-md-6">
                             <label for="image_type" class="form-label">Container Type</label>
                             <select class="form-select" id="image_type" name="image_type" required>
-                                <optgroup label="🌐 Web Servers (Instant)">
+                                <optgroup label="Web Servers (Instant)">
                                     <option value="nginx" selected>Nginx - Pool: {{ pool_availability.get('nginx', 0) }} available</option>
                                     <option value="apache">Apache - Pool: {{ pool_availability.get('apache', 0) }} available</option>
                                 </optgroup>
-                                <optgroup label="⚡ Runtimes (Instant)">
+                                <optgroup label="Runtimes (Instant)">
                                     <option value="node">Node.js - Pool: {{ pool_availability.get('node', 0) }} available</option>
                                     <option value="python">Python HTTP Server - Pool: {{ pool_availability.get('python', 0) }} available</option>
                                 </optgroup>
-                                <optgroup label="🗄️ Databases">
+                                <optgroup label="� Linux Machines (Instant)">
+                                    <option value="ubuntu-ssh">Ubuntu with SSH - Pool: {{ pool_availability.get('ubuntu-ssh', 0) }} available</option>
+                                </optgroup>
+                                <!--
+                                <optgroup label="Databases">
                                     <option value="redis">Redis - In-memory data store</option>
                                     <option value="mysql">MySQL - Database (password: password123)</option>
                                     <option value="postgres">PostgreSQL - Database (password: password123)</option>
                                 </optgroup>
+                                -->
                             </select>
                             <div class="form-text">
-                                <i class="bi bi-lightning-charge"></i> Pre-built containers launch instantly!
+                                Pre-built containers launch instantly!
                             </div>
                         </div>
                         
                         <div class="col-12">
                             <div class="alert alert-success mb-0">
-                                <i class="bi bi-lightbulb-fill"></i> <strong>Pro Tip:</strong> 
+                                <strong>Pro Tip:</strong> 
                                 After launching a web server, upload your own HTML/CSS/JS files to customize it instantly!
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-lightning-charge-fill"></i> Launch Instantly
+                        <i class="bi bi-rocket-takeoff-fill"></i> Launch Instantly
                     </button>
                 </div>
             </form>
@@ -114,7 +121,7 @@
         <div class="card">
             <div class="card-header py-3">
                 <h5 class="mb-0">
-                    <i class="bi bi-boxes"></i> Your Containers
+                    <i class="bi bi-box-seam"></i> Your Containers
                     <span class="badge bg-light text-dark">{{ current_user.containers|length }}</span>
                 </h5>
             </div>
@@ -124,13 +131,13 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th><i class="bi bi-tag"></i> Name</th>
-                                    <th><i class="bi bi-hash"></i> ID</th>
-                                    <th><i class="bi bi-disc"></i> Type</th>
-                                    <th><i class="bi bi-signal"></i> Status</th>
-                                    <th><i class="bi bi-diagram-3"></i> Ports</th>
-                                    <th><i class="bi bi-calendar"></i> Created</th>
-                                    <th><i class="bi bi-gear"></i> Actions</th>
+                                    <th>Name</th>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Ports</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -139,10 +146,10 @@
                                     <td>
                                         <strong>{{ container.name }}</strong>
                                         {% if container.from_pool %}
-                                        <i class="bi bi-hdd-stack text-success" title="From pool - instant provisioning"></i>
+                                        <i class="bi bi-lightning-charge-fill text-warning" title="From Pool"></i>
                                         {% endif %}
                                         {% if container.has_custom_files %}
-                                        <i class="bi bi-file-earmark-code text-primary" title="Has custom files"></i>
+                                        <i class="bi bi-file-earmark-code text-info" title="Has Custom Files"></i>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -160,15 +167,15 @@
                                     <td>
                                         {% if container.status == 'running' %}
                                             <span class="badge bg-success status-badge">
-                                                <i class="bi bi-play-circle"></i> Running
+                                                <i class="bi bi-play-circle-fill"></i> Running
                                             </span>
                                         {% elif container.status == 'stopped' %}
                                             <span class="badge bg-secondary status-badge">
-                                                <i class="bi bi-stop-circle"></i> Stopped
+                                                <i class="bi bi-stop-circle-fill"></i> Stopped
                                             </span>
                                         {% else %}
                                             <span class="badge bg-warning status-badge">
-                                                <i class="bi bi-question-circle"></i> {{ container.status|title }}
+                                                <i class="bi bi-exclamation-triangle-fill"></i> {{ container.status|title }}
                                             </span>
                                         {% endif %}
                                     </td>
@@ -176,17 +183,6 @@
                                         <span class="badge bg-dark">
                                             {{ container.host_port }} → {{ container.container_port }}
                                         </span>
-                                    </td>
-                                    <td>
-                                        {% if container.status == 'running' %}
-                                            <a href="http://192.168.121.183:{{ container.host_port }}" 
-                                               target="_blank" 
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-box-arrow-up-right"></i> Open
-                                            </a>
-                                        {% else %}
-                                            <span class="text-muted small">N/A</span>
-                                        {% endif %}
                                     </td>
                                     <td>
                                         <small class="text-muted">
@@ -199,20 +195,29 @@
                                                 {% if container.image_type in ['nginx', 'apache', 'node', 'python', 'wordpress'] %}
                                                 <a href="{{ url_for('upload_files', container_id=container.id) }}" 
                                                    class="btn btn-outline-secondary" title="Upload Files">
-                                                    <i class="bi bi-upload"></i>
-                                                </a>
+                                                    <i class="bi bi-cloud-upload"></i>
+                                                    </a>
                                                 {% endif %}
+                                                {% if container.image_type == 'ubuntu-ssh' %}
+                                                <button class="btn btn-outline-success" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#sshModal{{ container.id }}"
+                                                        title="SSH Connection Info">
+                                                    <i class="bi bi-terminal"></i>
+                                                    </button>
+                                                {% else %}
                                                 <a href="http://192.168.121.183:{{ container.host_port }}" 
                                                    target="_blank" 
                                                    class="btn btn-outline-primary" title="Open">
                                                     <i class="bi bi-box-arrow-up-right"></i>
-                                                </a>
+                                                    </a>
+                                                {% endif %}
                                                 <form method="POST" action="{{ url_for('stop_container', container_id=container.id) }}" 
                                                       class="d-inline"
                                                       onsubmit="return confirm('Stop container and release back to pool?');">
                                                     <button type="submit" class="btn btn-outline-danger" title="Stop & Release to Pool">
-                                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                                    </button>
+                                                        <i class="bi bi-stop-circle"></i>
+                                                        </button>
                                                 </form>
                                             {% else %}
                                                 <form method="POST" action="{{ url_for('stop_container', container_id=container.id) }}" 
@@ -220,7 +225,7 @@
                                                       onsubmit="return confirm('Delete this container?');">
                                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
                                                         <i class="bi bi-trash"></i>
-                                                    </button>
+                                                        </button>
                                                 </form>
                                             {% endif %}
                                         </div>
@@ -230,13 +235,88 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- SSH Connection Modals -->
+                    {% for container in current_user.containers %}
+                        {% if container.image_type == 'ubuntu-ssh' %}
+                        <div class="modal fade" id="sshModal{{ container.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-terminal"></i> SSH Connection Details
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-info">
+                                            Use these credentials to connect to your Linux machine via SSH
+                                        </div>
+                                        
+                                        <h6 class="mb-3">Connection Details</h6>
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <table class="table table-borderless mb-0">
+                                                    <tr>
+                                                        <td class="fw-bold" style="width: 150px;">Host:</td>
+                                                        <td><code>192.168.121.183</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="fw-bold">Port:</td>
+                                                        <td><code>{{ container.host_port }}</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="fw-bold">Username:</td>
+                                                        <td><code>devuser</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="fw-bold">Password:</td>
+                                                        <td><code>devpass123</code></td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-3">Connect via SSH</h6>
+                                        <div class="card mb-3 bg-dark text-light">
+                                            <div class="card-body">
+                                                <code class="text-light">ssh devuser@192.168.121.183 -p {{ container.host_port }}</code>
+                                                <button class="btn btn-sm btn-outline-light float-end" 
+                                                        onclick="navigator.clipboard.writeText('ssh devuser@192.168.121.183 -p {{ container.host_port }}')">
+                                                    <i class="bi bi-clipboard"></i> Copy
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-3">Security Notes</h6>
+                                        <ul class="small">
+                                            <li><strong>Change your password</strong> after first login: <code>passwd</code></li>
+                                            <li>Your user has <strong>sudo privileges</strong> (no password required)</li>
+                                            <li>Workspace directory: <code>~/workspace</code></li>
+                                            <li>Pre-installed: Python3, Node.js, Git, Vim, Nano, and more</li>
+                                        </ul>
+                                        
+                                        <div class="alert alert-warning mb-0">
+                                            <strong>Warning:</strong> 
+                                            This is a development environment. Do not store sensitive data without proper security measures.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    
                 {% else %}
                     <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                        <i class="bi bi-box-seam" style="font-size: 4rem; color: #ccc;"></i>
                         <h5 class="mt-3 text-muted">No containers yet</h5>
                         <p class="text-muted">Click "Launch Container" to get instant access from our pre-built pool!</p>
                         <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#launchModal">
-                            <i class="bi bi-lightning-charge-fill"></i> Launch Your First Container
+                            <i class="bi bi-rocket-takeoff-fill"></i> Launch Your First Container
                         </button>
                     </div>
                 {% endif %}
@@ -245,28 +325,6 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card border-info">
-            <div class="card-body">
-                <h6 class="card-title">
-                    <i class="bi bi-lightning-charge-fill text-info"></i> Container Pool System
-                </h6>
-                <ul class="mb-0 small">
-                    <li><strong>Instant Provisioning:</strong> Containers are pre-built and assigned from a pool in under 1 second</li>
-                    <li><strong>Auto-Release:</strong> When you stop a container, it's automatically returned to the pool for others to use</li>
-                    <li><strong>Pool Capacity:</strong> nginx (5), apache (3), python (3), node (2) - 13 total containers available</li>
-                    <li><strong>Custom Files:</strong> Upload your HTML/CSS/JS to web containers - files persist across restarts</li>
-                    <li><strong>Access URLs:</strong> Containers are accessible at http://192.168.121.183:[port]</li>
-                </ul>
-            </div>
-                    <li>Use "Stop" to terminate and remove a container when you're done</li>
-                    <li>Ports are randomly assigned between 8000-9000 to avoid conflicts</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}

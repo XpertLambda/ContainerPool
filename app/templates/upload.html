@@ -7,8 +7,8 @@
     <div class="col-12">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li class="breadcrumb-item active">Upload Files</li>
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}"><i class="bi bi-house-door"></i> Dashboard</a></li>
+                <li class="breadcrumb-item active"><i class="bi bi-cloud-upload"></i> Upload Files</li>
             </ol>
         </nav>
     </div>
@@ -19,7 +19,7 @@
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
-                    <i class="bi bi-box"></i> {{ container.name }}
+                    <i class="bi bi-box-seam"></i> {{ container.name }}
                     <span class="badge bg-light text-dark">{{ container.image_type }}</span>
                 </h5>
             </div>
@@ -35,8 +35,7 @@
                         <p><strong>Image:</strong> {{ container.image_name }}</p>
                         <p><strong>Port:</strong> 
                             <a href="http://192.168.121.183:{{ container.host_port }}" target="_blank">
-                                {{ container.host_port }} <i class="bi bi-box-arrow-up-right"></i>
-                            </a>
+                                <i class="bi bi-box-arrow-up-right"></i> {{ container.host_port }} </a>
                         </p>
                     </div>
                 </div>
@@ -62,7 +61,7 @@
                     </div>
                     
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> <strong>Upload Tips:</strong>
+                        <strong>Upload Tips:</strong>
                         <ul class="mb-0 mt-2">
                             {% if container.image_type == 'nginx' %}
                             <li>Files will be served from <code>/usr/share/nginx/html</code></li>
@@ -81,7 +80,7 @@
                     </div>
                     
                     <button type="submit" class="btn btn-success">
-                        <i class="bi bi-upload"></i> Upload Files
+                        <i class="bi bi-cloud-upload-fill"></i> Upload Files
                     </button>
                     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Back to Dashboard
@@ -102,8 +101,7 @@
                         {% for file in files %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <i class="bi bi-file-earmark-code text-primary"></i>
-                                <code>{{ file }}</code>
+                                <i class="bi bi-file-earmark-code"></i> <code>{{ file }}</code>
                             </div>
                             <form method="POST" 
                                   action="{{ url_for('delete_file', container_id=container.id, filename=file) }}"
@@ -111,14 +109,14 @@
                                   onsubmit="return confirm('Delete {{ file }}?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
-                                </button>
+                                    </button>
                             </form>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
                     <div class="alert alert-secondary mb-0">
-                        <i class="bi bi-inbox"></i> No files uploaded yet. Upload some files to get started!
+                        No files uploaded yet. Upload some files to get started!
                     </div>
                 {% endif %}
             </div>
@@ -127,7 +125,7 @@
         {% if container.image_type in ['nginx', 'apache'] %}
         <div class="card mt-3">
             <div class="card-header bg-warning">
-                <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Quick Start HTML</h6>
+                <h6 class="mb-0">Quick Start HTML</h6>
             </div>
             <div class="card-body">
                 <p class="small">Create an <code>index.html</code> file with this content:</p>

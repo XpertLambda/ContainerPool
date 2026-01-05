@@ -83,3 +83,20 @@ service-stop: ## Stop Flask app service
 
 service-start: ## Start Flask app service
 	cd infrastructure && vagrant ssh -c "sudo systemctl start paas-app"
+
+# Monitoring commands
+monitor-status: ## Check container monitor status
+	cd infrastructure && vagrant ssh -c "systemctl status container-monitor.timer"
+
+monitor-logs: ## View monitor logs (live)
+	cd infrastructure && vagrant ssh -c "tail -f /opt/my-paas/container_monitor.log"
+
+monitor-check: ## Run manual health check
+	cd infrastructure && vagrant ssh -c "cd /opt/my-paas && source venv/bin/activate && python container_monitor.py"
+
+monitor-helper: ## Open interactive monitor helper
+	cd infrastructure && vagrant ssh -c "sudo bash /opt/my-paas/monitor_helper.sh"
+
+deploy-monitoring: ## Deploy monitoring system to existing installation
+	@chmod +x deploy_monitoring.sh
+	@./deploy_monitoring.sh

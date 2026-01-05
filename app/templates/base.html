@@ -62,7 +62,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                <i class="bi bi-cloud-arrow-up"></i> PaaS Platform
+                <i class="bi bi-cloud-fill"></i> PaaS Platform
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -108,7 +108,6 @@
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -128,7 +127,7 @@
     <footer class="footer text-center">
         <div class="container">
             <span class="text-muted">
-                <i class="bi bi-cloud"></i> PaaS Platform MVP &copy; 2025
+                PaaS Platform MVP &copy; 2025
             </span>
         </div>
     </footer>

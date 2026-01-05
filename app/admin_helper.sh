@@ -9,6 +9,7 @@ DEFAULT_NGINX=5
 DEFAULT_APACHE=3
 DEFAULT_PYTHON=3
 DEFAULT_NODE=2
+DEFAULT_SSH=2
 
 # Load or create pool config
 load_config() {
@@ -19,6 +20,7 @@ load_config() {
         APACHE_COUNT=$DEFAULT_APACHE
         PYTHON_COUNT=$DEFAULT_PYTHON
         NODE_COUNT=$DEFAULT_NODE
+        SSH_COUNT=$DEFAULT_SSH
         save_config
     fi
 }
@@ -29,6 +31,7 @@ NGINX_COUNT=$NGINX_COUNT
 APACHE_COUNT=$APACHE_COUNT
 PYTHON_COUNT=$PYTHON_COUNT
 NODE_COUNT=$NODE_COUNT
+SSH_COUNT=$SSH_COUNT
 EOF
 }
 
@@ -37,23 +40,23 @@ show_menu() {
     echo "║         Container Pool Admin Helper                           ║"
     echo "╚════════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "👥 USER MANAGEMENT:"
+    echo " USER MANAGEMENT:"
     echo "  1) List all users"
     echo "  2) Delete user by username"
     echo ""
-    echo "📦 CONTAINER MANAGEMENT:"
+    echo " CONTAINER MANAGEMENT:"
     echo "  3) Show pool status"
     echo "  4) Show all assigned containers (with details)"
     echo "  5) Release container (reset to pool)"
     echo "  6) Delete container permanently"
     echo "  7) Release all containers from a user"
     echo ""
-    echo "➕ POOL MANAGEMENT:"
+    echo " POOL MANAGEMENT:"
     echo "  8) Add containers to pool (incremental)"
     echo "  9) Configure pool sizes"
     echo " 10) Reinitialize entire pool"
     echo ""
-    echo "📊 SYSTEM:"
+    echo " SYSTEM:"
     echo " 11) Show detailed system status"
     echo " 12) Exit"
     echo ""
@@ -79,24 +82,58 @@ PYTHON_END
 delete_user() {
     echo -n "Enter username to delete: "
     read username
+    
+    if [ -z "$username" ]; then
+        echo "No username entered"
+        return
+    fi
+    
     cd $SCRIPT_DIR
     source venv/bin/activate
+    
+    # First, check if user exists and show details
     python << PYTHON_END
 from app import app, db, User
+import sys
+
 with app.app_context():
     user = User.query.filter_by(username='$username').first()
     if user:
         print(f'User found: {user.username} (ID: {user.id})')
+        print(f'Email: {user.email}')
         print(f'Containers: {len(user.containers)}')
-        confirm = input('Delete this user? (yes/no): ')
-        if confirm.lower() == 'yes':
-            db.session.delete(user)
-            db.session.commit()
-            print('✓ User deleted')
-        else:
-            print('Cancelled')
+        print(f'Created: {user.created_at.strftime("%Y-%m-%d %H:%M")}')
     else:
         print('User not found')
+        sys.exit(1)
+PYTHON_END
+    
+    if [ $? -ne 0 ]; then
+        return
+    fi
+    
+    # Ask for confirmation in bash
+    echo ""
+    echo -n "Delete this user? (yes/no): "
+    read confirm
+    
+    if [ "$confirm" != "yes" ]; then
+        echo "Cancelled"
+        return
+    fi
+    
+    # Now perform the deletion
+    python << PYTHON_END
+from app import app, db, User
+
+with app.app_context():
+    user = User.query.filter_by(username='$username').first()
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        print('[OK] User deleted successfully')
+    else:
+        print('[ERROR] User not found')
 PYTHON_END
 }
 
@@ -111,6 +148,14 @@ show_assigned_containers() {
     source venv/bin/activate
     python << 'PYTHON_END'
 from app import app, db, User, Container
+import docker
+
+# Initialize Docker client
+try:
+    docker_client = docker.from_env()
+except:
+    docker_client = None
+
 with app.app_context():
     containers = Container.query.all()
     if not containers:
@@ -123,14 +168,27 @@ with app.app_context():
         for c in containers:
             user = User.query.get(c.user_id)
             pool_name = c.pool_name if c.pool_name else 'N/A'
+            
+            # Check actual Docker status
+            docker_status = 'unknown'
+            if docker_client:
+                try:
+                    dc = docker_client.containers.get(c.container_id)
+                    docker_status = dc.status
+                except:
+                    docker_status = 'missing'
+            
             print('Container ID: {} | User: {}'.format(c.id, user.username))
             print('  Name: {}'.format(c.name))
             print('  Type: {}'.format(c.image_type))
             print('  Pool Name: {}'.format(pool_name))
             print('  IP: 192.168.121.183')
             print('  Port: {}'.format(c.host_port))
-            print('  URL: http://192.168.121.183:{}'.format(c.host_port))
-            print('  Status: {}'.format(c.status))
+            if c.image_type == 'ubuntu-ssh':
+                print('  SSH: ssh devuser@192.168.121.183 -p {} (password: devpass123)'.format(c.host_port))
+            else:
+                print('  URL: http://192.168.121.183:{}'.format(c.host_port))
+            print('  DB Status: {} | Docker Status: {}'.format(c.status, docker_status))
             print('  From Pool: {}'.format('Yes' if c.from_pool else 'No'))
             print('-' * 70)
 PYTHON_END
@@ -152,7 +210,7 @@ import sys
 with app.app_context():
     container = Container.query.get($container_id)
     if not container:
-        print('❌ Container not found')
+        print('[ERROR] Container not found')
         sys.exit(1)
     
     user = User.query.get(container.user_id)
@@ -171,7 +229,7 @@ with app.app_context():
     print()
     
     if not container.from_pool or not container.pool_name:
-        print('⚠️  This container is not from the pool - cannot release')
+        print('[WARNING]  This container is not from the pool - cannot release')
         print('   Use option 6 to delete it permanently instead')
         sys.exit(1)
 PYTHON_END
@@ -198,7 +256,7 @@ import sys
 with app.app_context():
     container = Container.query.get($container_id)
     if not container:
-        print('❌ Container not found')
+        print('[ERROR] Container not found')
         sys.exit(1)
     
     # Release to pool
@@ -207,9 +265,9 @@ with app.app_context():
         docker_container = client.containers.get(container.container_id)
         docker_container.stop()
         docker_container.remove()
-        print('✓ Stopped and removed container')
+        print('[OK] Stopped and removed container')
     except Exception as e:
-        print('⚠️  Docker container not found: {}'.format(e))
+        print('[WARNING]  Docker container not found: {}'.format(e))
     
     # Recreate pool container with fresh state
     parts = container.pool_name.split('_')
@@ -248,14 +306,14 @@ with app.app_context():
             
             try:
                 new_container = client.containers.run(**container_config)
-                print('✓ Recreated pool container: {} (fresh state)'.format(container.pool_name))
+                print('[OK] Recreated pool container: {} (fresh state)'.format(container.pool_name))
             except Exception as e:
-                print('❌ Failed to recreate container: {}'.format(e))
+                print('[ERROR] Failed to recreate container: {}'.format(e))
     
     # Remove from database
     db.session.delete(container)
     db.session.commit()
-    print('✅ Container released back to pool successfully!')
+    print('[OK] Container released back to pool successfully!')
 PYTHON_END
 }
 
@@ -270,15 +328,26 @@ delete_container() {
     source venv/bin/activate
     python << PYTHON_END
 from app import app, db, Container, User
+import docker
 import sys
 
 with app.app_context():
     container = Container.query.get($container_id)
     if not container:
-        print('❌ Container not found')
+        print('[ERROR] Container not found')
         sys.exit(1)
     
     user = User.query.get(container.user_id)
+    
+    # Check Docker status
+    docker_status = 'unknown'
+    try:
+        client = docker.from_env()
+        dc = client.containers.get(container.container_id)
+        docker_status = dc.status
+    except:
+        docker_status = 'missing'
+    
     print()
     print('╔════════════════════════════════════════════════════════════════╗')
     print('║         Container Deletion Details                            ║')
@@ -289,12 +358,15 @@ with app.app_context():
     print('Type: {}'.format(container.image_type))
     print('IP: 192.168.121.183')
     print('Port: {}'.format(container.host_port))
+    print('DB Status: {} | Docker Status: {}'.format(container.status, docker_status))
     print('Pool Name: {}'.format(container.pool_name if container.pool_name else 'N/A'))
     print('From Pool: {}'.format('Yes' if container.from_pool else 'No'))
     print()
-    print('⚠️  WARNING: This will PERMANENTLY delete the container!')
+    print('[WARNING]  WARNING: This will PERMANENTLY delete the container!')
     if container.from_pool:
-        print('⚠️  This will also remove it from the pool permanently!')
+        print('[WARNING]  This will also remove it from the pool permanently!')
+    if docker_status == 'missing':
+        print('[INFO] Container already missing from Docker - will only remove from database')
 PYTHON_END
     
     # Ask for confirmation in bash
@@ -315,28 +387,23 @@ import sys
 with app.app_context():
     container = Container.query.get($container_id)
     if not container:
-        print('❌ Container not found')
+        print('[ERROR] Container not found')
         sys.exit(1)
     
-    # Delete container
-    client = docker.from_env()
-    try:
-        sys.exit(0)
-    
-    # Delete container
+    # Delete container from Docker
     client = docker.from_env()
     try:
         docker_container = client.containers.get(container.container_id)
         docker_container.stop()
         docker_container.remove()
-        print('✓ Stopped and removed Docker container')
+        print('[OK] Stopped and removed Docker container')
     except Exception as e:
-        print('⚠️  Docker container not found: {}'.format(e))
+        print('[WARNING]  Docker container not found: {}'.format(e))
     
     # Remove from database
     db.session.delete(container)
     db.session.commit()
-    print('✅ Container deleted permanently!')
+    print('[OK] Container deleted permanently!')
 PYTHON_END
 }
 
@@ -356,7 +423,7 @@ import sys
 with app.app_context():
     user = User.query.filter_by(username='$username').first()
     if not user:
-        print('❌ User not found')
+        print('[ERROR] User not found')
         sys.exit(1)
     
     containers = user.containers
@@ -391,7 +458,7 @@ import docker
 with app.app_context():
     user = User.query.filter_by(username='$username').first()
     if not user:
-        print('❌ User not found')
+        print('[ERROR] User not found')
     else:
         containers = user.containers
         if containers:
@@ -411,9 +478,9 @@ with app.app_context():
                     dc = client.containers.get(container.container_id)
                     dc.stop()
                     dc.remove()
-                    print('  ✓ Stopped and removed')
+                    print('  [OK] Stopped and removed')
                 except:
-                    print('  ⚠️  Docker container not found')
+                    print('  [WARNING]  Docker container not found')
                 
                 # If from pool, recreate it
                 if container.from_pool and container.pool_name:
@@ -441,14 +508,14 @@ with app.app_context():
                             
                             try:
                                 client.containers.run(**container_config)
-                                print('  ✓ Released to pool')
+                                print('  [OK] Released to pool')
                             except:
-                                print('  ❌ Failed to recreate')
+                                print('  [ERROR] Failed to recreate')
                 
                 db.session.delete(container)
             
             db.session.commit()
-            print('✅ All containers processed!')
+            print('[OK] All containers processed!')
 PYTHON_END
 }
 
@@ -463,13 +530,15 @@ add_containers() {
     echo "  Apache: $APACHE_COUNT containers"
     echo "  Python: $PYTHON_COUNT containers"
     echo "  Node: $NODE_COUNT containers"
+    echo "  Ubuntu SSH: $SSH_COUNT containers"
     echo ""
     echo "Select container type to add:"
     echo "  1) Nginx"
     echo "  2) Apache"
     echo "  3) Python"
     echo "  4) Node"
-    echo "  5) Cancel"
+    echo "  5) Ubuntu SSH"
+    echo "  6) Cancel"
     echo ""
     read -p "Choice: " type_choice
     
@@ -478,7 +547,8 @@ add_containers() {
         2) TYPE="apache"; BASE_PORT=8100 ;;
         3) TYPE="python"; BASE_PORT=8200 ;;
         4) TYPE="node"; BASE_PORT=8300 ;;
-        5) return ;;
+        5) TYPE="ubuntu-ssh"; BASE_PORT=2200 ;;
+        6) return ;;
         *) echo "Invalid choice"; return ;;
     esac
     
@@ -527,6 +597,7 @@ POOL_CONFIG = {
     'apache': {'image': 'httpd:alpine', 'port': 80},
     'python': {'image': 'python:3.11-alpine', 'port': 8000},
     'node': {'image': 'node:18-alpine', 'port': 3000},
+    'ubuntu-ssh': {'image': 'ubuntu-ssh:latest', 'port': 22},
 }
 
 config = POOL_CONFIG['$TYPE']
@@ -548,7 +619,7 @@ for i in range($count):
                 if bindings:
                     for binding in bindings:
                         if int(binding['HostPort']) == host_port:
-                            print('  ⚠️  Port {} already in use, skipping'.format(host_port))
+                            print('  [WARNING]  Port {} already in use, skipping'.format(host_port))
                             port_used = True
                             break
     
@@ -577,13 +648,13 @@ for i in range($count):
     
     try:
         container = client.containers.run(**container_config)
-        print('  ✓ Created {} on port {}'.format(container_name, host_port))
+        print('  [OK] Created {} on port {}'.format(container_name, host_port))
         created += 1
     except Exception as e:
-        print('  ❌ Failed to create container on port {}: {}'.format(host_port, e))
+        print('  [ERROR] Failed to create container on port {}: {}'.format(host_port, e))
 
 print()
-print('✅ Created {} new $TYPE containers'.format(created))
+print('[OK] Created {} new $TYPE containers'.format(created))
 PYTHON_END
     
     # Update config
@@ -592,6 +663,7 @@ PYTHON_END
         apache) APACHE_COUNT=$((APACHE_COUNT + count)) ;;
         python) PYTHON_COUNT=$((PYTHON_COUNT + count)) ;;
         node) NODE_COUNT=$((NODE_COUNT + count)) ;;
+        ubuntu-ssh) SSH_COUNT=$((SSH_COUNT + count)) ;;
     esac
     save_config
 }
@@ -607,6 +679,7 @@ configure_pool() {
     echo "  2) Apache: $APACHE_COUNT containers"
     echo "  3) Python: $PYTHON_COUNT containers"
     echo "  4) Node: $NODE_COUNT containers"
+    echo "  5) Ubuntu SSH: $SSH_COUNT containers"
     echo ""
     echo "Note: This only changes the configuration for future initializations."
     echo "Use 'Add containers' to add to existing pool incrementally."
@@ -615,20 +688,23 @@ configure_pool() {
     read -p "Enter new apache count [$APACHE_COUNT]: " new_apache
     read -p "Enter new python count [$PYTHON_COUNT]: " new_python
     read -p "Enter new node count [$NODE_COUNT]: " new_node
+    read -p "Enter new ssh count [$SSH_COUNT]: " new_ssh
     
     [ ! -z "$new_nginx" ] && NGINX_COUNT=$new_nginx
     [ ! -z "$new_apache" ] && APACHE_COUNT=$new_apache
     [ ! -z "$new_python" ] && PYTHON_COUNT=$new_python
     [ ! -z "$new_node" ] && NODE_COUNT=$new_node
+    [ ! -z "$new_ssh" ] && SSH_COUNT=$new_ssh
     
     save_config
     
     echo ""
-    echo "✅ Configuration saved:"
+    echo "[OK] Configuration saved:"
     echo "  Nginx: $NGINX_COUNT"
     echo "  Apache: $APACHE_COUNT"
     echo "  Python: $PYTHON_COUNT"
     echo "  Node: $NODE_COUNT"
+    echo "  Ubuntu SSH: $SSH_COUNT"
     echo ""
     echo "Use 'Reinitialize entire pool' to apply these settings."
 }
@@ -644,6 +720,7 @@ reinitialize_pool() {
     echo "  Apache: $APACHE_COUNT containers"
     echo "  Python: $PYTHON_COUNT containers"
     echo "  Node: $NODE_COUNT containers"
+    echo "  Ubuntu SSH: $SSH_COUNT containers"
     echo ""
     echo "Specify the number of containers for each service:"
     echo ""
@@ -651,12 +728,14 @@ reinitialize_pool() {
     read -p "Enter apache count [$APACHE_COUNT]: " new_apache
     read -p "Enter python count [$PYTHON_COUNT]: " new_python
     read -p "Enter node count [$NODE_COUNT]: " new_node
+    read -p "Enter ssh count [$SSH_COUNT]: " new_ssh
     
     # Use new values or keep current
     [ ! -z "$new_nginx" ] && NGINX_COUNT=$new_nginx
     [ ! -z "$new_apache" ] && APACHE_COUNT=$new_apache
     [ ! -z "$new_python" ] && PYTHON_COUNT=$new_python
     [ ! -z "$new_node" ] && NODE_COUNT=$new_node
+    [ ! -z "$new_ssh" ] && SSH_COUNT=$new_ssh
     
     # Save the new configuration
     save_config
@@ -669,8 +748,10 @@ reinitialize_pool() {
     echo "    • Apache: $APACHE_COUNT"
     echo "    • Python: $PYTHON_COUNT"
     echo "    • Node: $NODE_COUNT"
+    echo "    • Ubuntu SSH: $SSH_COUNT"
+    echo "    • Node: $NODE_COUNT"
     echo ""
-    echo "⚠️  WARNING: Assigned containers will be unaffected but pool will be fresh!"
+    echo "[WARNING]  WARNING: Assigned containers will be unaffected but pool will be fresh!"
     echo ""
     read -p "Continue? (yes/no): " confirm
     
@@ -706,16 +787,21 @@ content = re.sub(
     "'node': {'count': $NODE_COUNT, 'image': 'node:18-alpine', 'port': 3000},",
     content
 )
+content = re.sub(
+    r"'ubuntu-ssh': {[^}]+},",
+    "'ubuntu-ssh': {'count': $SSH_COUNT, 'image': 'ubuntu-ssh:latest', 'port': 22},",
+    content
+)
 
 with open('pool_manager.py', 'w') as f:
     f.write(content)
 
-print('✓ Updated pool configuration')
+print('[OK] Updated pool configuration')
 PYTHON_END
         
         python pool_manager.py --init
         echo ""
-        echo "✅ Pool reinitialized successfully!"
+        echo "[OK] Pool reinitialized successfully!"
     else
         echo "Cancelled"
     fi
@@ -731,7 +817,7 @@ show_system_status() {
     echo ""
     
     # Users
-    echo "👥 USERS:"
+    echo " USERS:"
     python << 'PYTHON_END'
 from app import app, db, User
 with app.app_context():
@@ -740,7 +826,7 @@ PYTHON_END
     echo ""
     
     # Assigned containers
-    echo "📦 ASSIGNED CONTAINERS:"
+    echo " ASSIGNED CONTAINERS:"
     python << 'PYTHON_END'
 from app import app, db, Container
 with app.app_context():
@@ -756,11 +842,11 @@ PYTHON_END
     echo ""
     
     # Flask app
-    echo "🌐 FLASK APP:"
+    echo " FLASK APP:"
     if pgrep -f "flask run" > /dev/null; then
-        echo "   Status: ✓ Running"
+        echo "   Status: [OK] Running"
     else
-        echo "   Status: ✗ Stopped"
+        echo "   Status: [FAILED] Stopped"
     fi
     echo ""
 }

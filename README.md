@@ -9,6 +9,7 @@ A Platform-as-a-Service (PaaS) system with pre-built container pools for instant
 - **Multiple Container Types**: Nginx, Apache, Python, and Node.js
 - **Dynamic Pool Management**: Admin tools for pool expansion and configuration
 - **Automatic Reset**: Containers return to fresh state when released
+- **Auto-Recovery**: Automatic monitoring and recovery of failed containers (NEW!)
 
 ### User Features
 - Secure authentication (registration and login)
@@ -16,12 +17,14 @@ A Platform-as-a-Service (PaaS) system with pre-built container pools for instant
 - File upload for web servers (HTML, CSS, JS, images)
 - Real-time container status monitoring
 - Access containers via unique ports
+- Automatic container recovery if failures occur
 
 ### Admin Features
 - Interactive admin helper script
 - User and container management
 - Pool status monitoring and configuration
 - Batch operations for container management
+- Container health monitoring dashboard
 
 ## Architecture
 
@@ -56,7 +59,9 @@ platform-deployement/
 ├── app/
 │   ├── app.py                   # Main Flask application
 │   ├── pool_manager.py          # Container pool management CLI
+│   ├── container_monitor.py     # Auto-recovery monitoring (NEW!)
 │   ├── admin_helper.sh          # Interactive admin script
+│   ├── monitor_helper.sh        # Monitor management script (NEW!)
 │   ├── requirements.txt         # Python dependencies
 │   └── templates/               # HTML templates
 ├── requirements.sh              # System requirements installer
@@ -64,6 +69,7 @@ platform-deployement/
 ├── admin.sh                     # Admin helper wrapper
 ├── Makefile                     # Build automation
 ├── COMMANDS.sh                  # Quick command reference
+├── CONTAINER_MONITORING.md      # Monitoring system docs (NEW!)
 └── README.md
 ```
 
@@ -200,6 +206,36 @@ Default pool sizes (configurable via admin helper):
 | Node.js | 2 |
 
 Configuration stored at `/opt/my-paas/pool_config.txt` on the VM.
+
+### Container Auto-Recovery
+
+The platform includes automatic monitoring and recovery for user containers:
+
+**Features:**
+- Monitors all containers every 2 minutes
+- Automatically recovers failed, stopped, or deleted containers
+- Preserves user files and configuration
+- Assigns new container from pool with same type
+- Logs all recovery actions
+
+**View monitoring status:**
+```bash
+# Check monitor service
+ssh vagrant@192.168.121.183 "systemctl status container-monitor.timer"
+
+# View monitor logs
+ssh vagrant@192.168.121.183 "tail -f /opt/my-paas/container_monitor.log"
+
+# Run manual check
+ssh vagrant@192.168.121.183 "cd /opt/my-paas && source venv/bin/activate && python container_monitor.py"
+```
+
+**Interactive monitor helper:**
+```bash
+ssh vagrant@192.168.121.183 "sudo bash /opt/my-paas/monitor_helper.sh"
+```
+
+See [CONTAINER_MONITORING.md](CONTAINER_MONITORING.md) for complete documentation.
 
 ### VM Configuration
 

@@ -165,6 +165,36 @@
         name: paas-app
         state: restarted
       # Always restart after first start to pick up docker group membership
+    
+    - name: Copy container monitor systemd service file
+      copy:
+        src: /vagrant/app/container-monitor.service
+        dest: /etc/systemd/system/container-monitor.service
+        mode: '0644'
+    
+    - name: Copy container monitor systemd timer file
+      copy:
+        src: /vagrant/app/container-monitor.timer
+        dest: /etc/systemd/system/container-monitor.timer
+        mode: '0644'
+    
+    - name: Copy container monitor script
+      copy:
+        src: /vagrant/app/container_monitor.py
+        dest: "{{ app_dir }}/container_monitor.py"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+    
+    - name: Reload systemd daemon for monitor service
+      systemd:
+        daemon_reload: yes
+    
+    - name: Enable and start container monitor timer
+      systemd:
+        name: container-monitor.timer
+        state: started
+        enabled: yes
         
     - name: Pull common Docker images
       docker_image:
@@ -177,6 +207,22 @@
         - node:18-alpine
         - python:3.11-alpine
         - redis:alpine
+        - ubuntu:22.04
+    
+    - name: Copy Ubuntu SSH Dockerfile
+      copy:
+        src: /vagrant/ubuntu-ssh/
+        dest: "{{ app_dir }}/ubuntu-ssh/"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+      
+    - name: Build Ubuntu SSH image
+      docker_image:
+        name: ubuntu-ssh:latest
+        build:
+          path: "{{ app_dir }}/ubuntu-ssh"
+        source: build
+      become_user: "{{ app_user }}"
       
     - name: Display access information
       debug:
