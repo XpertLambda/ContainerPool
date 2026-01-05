@@ -467,20 +467,4 @@ graph TB
     Browser --> N1
     SSH --> S1
 ```
-
----
-
-## How to View These Diagrams
-
-1. **VS Code**: Install the "Markdown Preview Mermaid Support" extension
-2. **GitHub**: Mermaid diagrams render automatically in markdown files
-3. **Online**: Use [Mermaid Live Editor](https://mermaid.live/)
-4. **CLI**: Use `mmdc` (mermaid-cli) to generate PNG/SVG files
-
-```bash
-# Install mermaid-cli
-npm install -g @mermaid-js/mermaid-cli
-
-# Generate PNG
-mmdc -i diagram.md -o diagram.png
 ```
