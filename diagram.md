@@ -77,9 +77,9 @@ stateDiagram-v2
     Available --> Stopped: Docker Issue
     Stopped --> Available: Monitor Restarts
     
-    note right of Available: "Labels: pool=true, status=available"
-    note right of Assigned: "Labels: pool=true, status=assigned", user_id=X
-    note right of Failed: Container missing from Docker
+    note right of Available : "Labels: pool=true, status=available"
+    note right of Assigned : "Labels: pool=true, status=assigned", user_id=X
+    note right of Failed : Container missing from Docker
 ```
 
 ## 3. User Request Flow
