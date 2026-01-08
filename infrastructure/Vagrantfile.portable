@@ -1,0 +1,77 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# Vagrantfile for using the pre-packaged my-paas-portable.box
+# This box contains a fully provisioned PaaS platform with all containers ready
+#
+# REQUIREMENTS:
+# - Linux with KVM/libvirt installed
+# - vagrant-libvirt plugin
+#
+# USAGE:
+# 1. vagrant box add my-paas-portable my-paas-portable.box
+# 2. cp Vagrantfile.portable Vagrantfile
+# 3. vagrant up
+
+Vagrant.configure("2") do |config|
+  # Use the pre-packaged box
+  config.vm.box = "my-paas-portable"
+  
+  # Disable default sync (not needed - everything is already in the box)
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  
+  # Configure the VM for libvirt provider
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.memory = 2048
+    libvirt.cpus = 2
+    libvirt.driver = "kvm"
+    libvirt.connect_via_ssh = false
+    libvirt.management_network_address = "192.168.121.0/24"
+  end
+  
+  # Forward port for Flask app
+  config.vm.network "forwarded_port", guest: 5000, host: 5000, host_ip: "0.0.0.0"
+  
+  # Forward ports for web containers (8000-8100)
+  (8000..8100).each do |port|
+    config.vm.network "forwarded_port", guest: port, host: port, host_ip: "0.0.0.0", auto_correct: true
+  end
+  
+  # Forward SSH ports for Ubuntu containers (2200-2210)
+  (2200..2210).each do |port|
+    config.vm.network "forwarded_port", guest: port, host: port, host_ip: "0.0.0.0", auto_correct: true
+  end
+  
+  # Set hostname
+  config.vm.hostname = "paas-platform"
+  
+  # Start services on boot (in case they're not running)
+  config.vm.provision "shell", run: "always", inline: <<-SHELL
+    echo "Starting PaaS Platform services..."
+    
+    # Ensure Docker is running
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    
+    # Start the Flask app service
+    sudo systemctl start paas-app
+    sudo systemctl enable paas-app
+    
+    # Start the container monitor timer
+    sudo systemctl start container-monitor.timer
+    sudo systemctl enable container-monitor.timer
+    
+    # Check pool status
+    echo ""
+    echo "Checking container pool status..."
+    cd /opt/my-paas && source venv/bin/activate && python pool_manager.py --status 2>/dev/null || echo "Pool may need initialization"
+    
+    echo ""
+    echo "=========================================="
+    echo "PaaS Platform is ready!"
+    echo "=========================================="
+    echo "Access: http://192.168.121.183:5000"
+    echo "   or:  http://localhost:5000"
+    echo ""
+  SHELL
+end
