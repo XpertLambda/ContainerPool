@@ -110,7 +110,7 @@ graph TB
 
 | Component | Address Range | Purpose |
 |-----------|---------------|---------|
-| **VM Gateway** | 192.168.121.183 | Main access point |
+| **VM Gateway** | <VM_IP> | Main access point |
 | **Flask API** | Port 5000 | Web interface |
 | **Nginx Pool** | 8000-8099 | Web server containers |
 | **Apache Pool** | 8100-8199 | Alternative web server |
@@ -143,7 +143,7 @@ cd infrastructure
 vagrant up
 
 # 4. Access the platform
-# Open http://192.168.121.183:5000 in your browser
+# Open http://<VM_IP>:5000 in your browser
 ```
 
 **That's it!** The platform will be running with 13 pre-initialized containers.
@@ -211,7 +211,7 @@ vagrant up
 
 | Method | URL | Use Case |
 |--------|-----|----------|
-| **Direct VM** | http://192.168.121.183:5000 | Production access |
+| **Direct VM** | http://<VM_IP>:5000 | Production access |
 | **Localhost** | http://localhost:5000 | Development/testing |
 
 ### User Workflow
@@ -242,7 +242,7 @@ Authenticate with your credentials at `/login`
 - Configuration files
 
 #### Step 5: Access Your Container
-Use the provided URL: `http://192.168.121.183:<your-port>`
+Use the provided URL: `http://<VM_IP>:<your-port>`
 
 #### Step 6: Release When Done
 Return container to pool for other users
@@ -262,7 +262,7 @@ The easiest way to manage the platform:
 Or directly on the VM:
 
 ```bash
-ssh vagrant@192.168.121.183  # Password: vagrant
+ssh vagrant@<VM_IP>  # Password: vagrant
 sudo /opt/my-paas/admin_helper.sh
 ```
 
@@ -280,7 +280,7 @@ sudo /opt/my-paas/admin_helper.sh
 
 **Check Pool Health:**
 ```bash
-ssh vagrant@192.168.121.183 \
+ssh vagrant@<VM_IP> \
   "cd /opt/my-paas && source venv/bin/activate && python pool_manager.py --status"
 ```
 
@@ -305,10 +305,10 @@ ssh vagrant@192.168.121.183 \
 **Monitor Auto-Recovery:**
 ```bash
 # Check monitoring service
-ssh vagrant@192.168.121.183 "systemctl status container-monitor.timer"
+ssh vagrant@<VM_IP> "systemctl status container-monitor.timer"
 
 # View recovery logs
-ssh vagrant@192.168.121.183 "tail -f /opt/my-paas/container_monitor.log"
+ssh vagrant@<VM_IP> "tail -f /opt/my-paas/container_monitor.log"
 ```
 
 ---
@@ -339,7 +339,7 @@ node=2     # Ports 8300-8301
 
 **View monitoring configuration:**
 ```bash
-ssh vagrant@192.168.121.183 "sudo bash /opt/my-paas/monitor_helper.sh"
+ssh vagrant@<VM_IP> "sudo bash /opt/my-paas/monitor_helper.sh"
 ```
 
 See [CONTAINER_MONITORING.md](CONTAINER_MONITORING.md) for complete documentation.
@@ -372,20 +372,20 @@ vagrant reload --provision
 cd infrastructure && vagrant ssh
 
 # View application logs
-ssh vagrant@192.168.121.183 "cat /opt/my-paas/flask.log"
+ssh vagrant@<VM_IP> "cat /opt/my-paas/flask.log"
 
 # Restart Flask service
-ssh vagrant@192.168.121.183 \
+ssh vagrant@<VM_IP> \
   "sudo systemctl restart flask-app"
 
 # Check Docker containers
-ssh vagrant@192.168.121.183 "docker ps -a"
+ssh vagrant@<VM_IP> "docker ps -a"
 ```
 
 ### Database Operations
 
 ```bash
-ssh vagrant@192.168.121.183
+ssh vagrant@<VM_IP>
 cd /opt/my-paas && source venv/bin/activate
 python
 
@@ -403,14 +403,14 @@ python
 
 **Create backup:**
 ```bash
-scp vagrant@192.168.121.183:/opt/my-paas/instance/paas_platform.db \
+scp vagrant@<VM_IP>:/opt/my-paas/instance/paas_platform.db \
     ./backup-$(date +%Y%m%d).db
 ```
 
 **Restore from backup:**
 ```bash
-scp ./backup-20250112.db vagrant@192.168.121.183:/tmp/
-ssh vagrant@192.168.121.183 \
+scp ./backup-20250112.db vagrant@<VM_IP>:/tmp/
+ssh vagrant@<VM_IP> \
   "sudo cp /tmp/backup-20250112.db /opt/my-paas/instance/paas_platform.db && \
    sudo systemctl restart flask-app"
 ```
@@ -440,19 +440,19 @@ sudo usermod -a -G libvirt $USER
 
 **Verify Flask is running:**
 ```bash
-ssh vagrant@192.168.121.183 "pgrep -f 'flask run'"
+ssh vagrant@<VM_IP> "pgrep -f 'flask run'"
 ```
 
 **Check VM network:**
 ```bash
 cd infrastructure
 vagrant ssh -c "ip addr show"
-ping 192.168.121.183
+ping <VM_IP>
 ```
 
 **Restart Flask manually:**
 ```bash
-ssh vagrant@192.168.121.183 \
+ssh vagrant@<VM_IP> \
   "cd /opt/my-paas && source venv/bin/activate && \
    pkill -f 'flask run'; \
    nohup flask run --host=0.0.0.0 > flask.log 2>&1 &"
@@ -467,7 +467,7 @@ ssh vagrant@192.168.121.183 \
 
 **Reinitialize pool:**
 ```bash
-ssh vagrant@192.168.121.183 \
+ssh vagrant@<VM_IP> \
   "cd /opt/my-paas && source venv/bin/activate && \
    python pool_manager.py --init"
 ```
@@ -476,12 +476,12 @@ ssh vagrant@192.168.121.183 \
 
 **List all containers:**
 ```bash
-ssh vagrant@192.168.121.183 "docker ps -a"
+ssh vagrant@<VM_IP> "docker ps -a"
 ```
 
 **Clean orphaned containers:**
 ```bash
-ssh vagrant@192.168.121.183 "docker container prune -f"
+ssh vagrant@<VM_IP> "docker container prune -f"
 ```
 
 ---
@@ -571,27 +571,6 @@ We welcome contributions! This project is designed for learning and collaboratio
 - Add tests for new features
 - Update documentation for changes
 - Use meaningful commit messages
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2025 Container Pool PaaS Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-[Full license text...]
-```
 
 ---
 
