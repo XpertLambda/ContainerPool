@@ -41,6 +41,7 @@ Thumbs.db
 # box 
 *.box
 *.boxed
+trash/
 
 *.txt
 *.zip
