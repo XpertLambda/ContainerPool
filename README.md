@@ -12,42 +12,42 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [Usage Guide](#-usage-guide)
-- [Administration](#-administration)
-- [Configuration](#-configuration)
-- [Development](#-development)
-- [Troubleshooting](#-troubleshooting)
-- [Project Structure](#-project-structure)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage Guide](#usage-guide)
+- [Administration](#administration)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🎯 Overview
+## Overview
 
 Container Pool PaaS is an educational platform demonstrating modern infrastructure-as-code principles through a production-ready container orchestration system. Built on KVM, Docker, and Flask, it showcases instant provisioning, automatic recovery, and pool-based resource management.
 
 ### Why This Platform?
 
-- **⚡ Instant Provisioning**: Sub-second container assignment from pre-warmed pools
-- **🔄 Self-Healing**: Automatic monitoring and recovery of failed containers
-- **📦 Multi-Runtime Support**: Nginx, Apache, Python 3.10, and Node.js 18
-- **🛡️ Production Patterns**: Demonstrates enterprise-grade infrastructure automation
-- **🎓 Educational Focus**: Clear code, comprehensive docs, and best practices
+- **Instant Provisioning**: Sub-second container assignment from pre-warmed pools
+- **Self-Healing**: Automatic monitoring and recovery of failed containers
+- **Multi-Runtime Support**: Nginx, Apache, Python 3.10, and Node.js 18
+- **Production Patterns**: Demonstrates enterprise-grade infrastructure automation
+- **Educational Focus**: Clear code, comprehensive docs, and best practices
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🎪 Container Pool System
+### Container Pool System
 
 | Feature | Description |
 |---------|-------------|
@@ -57,26 +57,26 @@ Container Pool PaaS is an educational platform demonstrating modern infrastructu
 | **Automatic Reset** | Fresh state on release |
 | **Auto-Recovery** | Self-healing with monitoring every 2 minutes |
 
-### 👤 User Features
+### User Features
 
-- 🔐 Secure JWT-based authentication
-- 🚀 One-click container deployment
-- 📁 File upload for static/dynamic content
-- 📊 Real-time status monitoring
-- 🌐 Unique port-based access
-- 🔄 Automatic failover on container issues
+- Secure JWT-based authentication
+- One-click container deployment
+- File upload for static/dynamic content
+- Real-time status monitoring
+- Unique port-based access
+- Automatic failover on container issues
 
-### 🛠️ Admin Features
+### Admin Features
 
-- 💻 Interactive CLI management
-- 👥 User and container administration
-- 📈 Pool health monitoring
-- 🔧 Batch operations support
-- 📋 Comprehensive logging
+- Interactive CLI management
+- User and container administration
+- Pool health monitoring
+- Batch operations support
+- Comprehensive logging
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Technology Stack
 
@@ -119,7 +119,7 @@ graph TB
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -150,7 +150,7 @@ vagrant up
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Step 1: System Requirements Installation
 
@@ -194,18 +194,18 @@ vagrant up
 ```
 
 **First-time deployment** (5-10 minutes):
-1. ⬇️ Downloads Ubuntu 22.04 base image
-2. 🖥️ Creates KVM virtual machine
-3. ⚙️ Runs Ansible provisioning playbooks
-4. 🐳 Installs Docker and Python environment
-5. 🚀 Deploys Flask application
-6. 🎪 Initializes container pools (13 containers)
-7. 🔄 Starts auto-recovery monitoring
-8. ✅ Launches web service
+1. Downloads Ubuntu 22.04 base image
+2. Creates KVM virtual machine
+3. Runs Ansible provisioning playbooks
+4. Installs Docker and Python environment
+5. Deploys Flask application
+6. Initializes container pools (13 containers)
+7. Starts auto-recovery monitoring
+8. Launches web service
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Accessing the Platform
 
@@ -216,21 +216,21 @@ vagrant up
 
 ### User Workflow
 
-#### 1️⃣ Register an Account
+#### Step 1: Register an Account
 Navigate to `/register` and create your credentials:
 - Username (alphanumeric)
 - Email address
 - Secure password
 
-#### 2️⃣ Login
+#### Step 2: Login
 Authenticate with your credentials at `/login`
 
-#### 3️⃣ Launch Container
+#### Step 3: Launch Container
 - Select runtime type (Nginx, Apache, Python, Node.js)
 - Instant assignment from pool (<1 second)
 - Receive unique port and access URL
 
-#### 4️⃣ Upload Content (Optional)
+#### Step 4: Upload Content (Optional)
 **For web servers (Nginx/Apache):**
 - HTML, CSS, JavaScript files
 - Images (PNG, JPG, GIF)
@@ -241,15 +241,15 @@ Authenticate with your credentials at `/login`
 - Dependencies
 - Configuration files
 
-#### 5️⃣ Access Your Container
+#### Step 5: Access Your Container
 Use the provided URL: `http://192.168.121.183:<your-port>`
 
-#### 6️⃣ Release When Done
+#### Step 6: Release When Done
 Return container to pool for other users
 
 ---
 
-## 🛠️ Administration
+## Administration
 
 ### Interactive Admin Helper
 
@@ -270,11 +270,11 @@ sudo /opt/my-paas/admin_helper.sh
 
 | Category | Available Operations |
 |----------|---------------------|
-| **👥 Users** | List users, delete user accounts |
-| **📦 Containers** | View pool status, show assignments, release/delete containers |
-| **🎪 Pool** | Add containers, configure sizes, reinitialize pool |
-| **📊 Monitoring** | View status, check logs, monitor health |
-| **⚙️ System** | Service control, database access |
+| **Users** | List users, delete user accounts |
+| **Containers** | View pool status, show assignments, release/delete containers |
+| **Pool** | Add containers, configure sizes, reinitialize pool |
+| **Monitoring** | View status, check logs, monitor health |
+| **System** | Service control, database access |
 
 ### Common Administrative Tasks
 
@@ -313,7 +313,7 @@ ssh vagrant@192.168.121.183 "tail -f /opt/my-paas/container_monitor.log"
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Container Pool Sizes
 
@@ -363,7 +363,7 @@ vagrant reload --provision
 
 ---
 
-## 🔧 Development
+## Development
 
 ### VM Management Commands
 
@@ -417,7 +417,7 @@ ssh vagrant@192.168.121.183 \
 
 ---
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### VM Won't Start
 
@@ -486,25 +486,25 @@ ssh vagrant@192.168.121.183 "docker container prune -f"
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 platform-deployment/
-├── 📄 README.md                      # This file
-├── 📄 LICENSE                        # MIT license
-├── 📄 COMMANDS.sh                    # Quick command reference
-├── 📄 CONTAINER_MONITORING.md        # Auto-recovery documentation
-├── 📄 Makefile                       # Build automation
+├── README.md                      # This file
+├── LICENSE                        # MIT license
+├── COMMANDS.sh                    # Quick command reference
+├── CONTAINER_MONITORING.md        # Auto-recovery documentation
+├── Makefile                       # Build automation
 │
-├── 🔧 requirements.sh                # System dependency installer
-├── 🔧 setup.sh                       # Prerequisites checker
-├── 🔧 admin.sh                       # Admin helper wrapper
+├── requirements.sh                # System dependency installer
+├── setup.sh                       # Prerequisites checker
+├── admin.sh                       # Admin helper wrapper
 │
-├── 🏗️ infrastructure/
+├── infrastructure/
 │   ├── Vagrantfile                   # VM configuration (KVM/libvirt)
 │   └── site.yml                      # Ansible provisioning playbook
 │
-└── 💻 app/
+└── app/
     ├── app.py                        # Flask application (main)
     ├── pool_manager.py               # Container pool CLI
     ├── container_monitor.py          # Auto-recovery daemon
@@ -527,43 +527,43 @@ platform-deployment/
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 ### Version 2.0 (Planned)
 
-- [ ] 🎨 Custom Docker images via Dockerfile upload
-- [ ] 💾 Persistent container storage with volume management
-- [ ] 📊 Resource limits (CPU, memory quotas per user)
-- [ ] 📝 Real-time container log streaming
-- [ ] 🔐 SSL/TLS certificate automation
-- [ ] 👥 User quotas and rate limiting
-- [ ] 🐳 Docker Compose support for multi-container apps
-- [ ] 📈 Grafana/Prometheus monitoring integration
-- [ ] 🌐 Load balancer for container distribution
-- [ ] 🔄 Blue-green deployment support
+- [ ] Custom Docker images via Dockerfile upload
+- [ ] Persistent container storage with volume management
+- [ ] Resource limits (CPU, memory quotas per user)
+- [ ] Real-time container log streaming
+- [ ] SSL/TLS certificate automation
+- [ ] User quotas and rate limiting
+- [ ] Docker Compose support for multi-container apps
+- [ ] Grafana/Prometheus monitoring integration
+- [ ] Load balancer for container distribution
+- [ ] Blue-green deployment support
 
 ### Version 3.0 (Future)
 
-- [ ] ☸️ Kubernetes migration path
-- [ ] 🌍 Multi-region container distribution
-- [ ] 🤖 AI-powered resource optimization
-- [ ] 📱 Mobile app for container management
-- [ ] 🔌 Plugin system for extensibility
+- [ ] Kubernetes migration path
+- [ ] Multi-region container distribution
+- [ ] AI-powered resource optimization
+- [ ] Mobile app for container management
+- [ ] Plugin system for extensibility
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! This project is designed for learning and collaboration.
 
 ### How to Contribute
 
-1. 🍴 Fork the repository
-2. 🌿 Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. 💻 Make your changes with clear commits
-4. ✅ Test thoroughly in a VM environment
-5. 📤 Push to your fork (`git push origin feature/amazing-feature`)
-6. 🎉 Open a Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes with clear commits
+4. Test thoroughly in a VM environment
+5. Push to your fork (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ### Development Guidelines
 
@@ -574,7 +574,7 @@ We welcome contributions! This project is designed for learning and collaboratio
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -595,7 +595,7 @@ furnished to do so, subject to the following conditions:
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with these excellent open-source projects:
 
@@ -608,20 +608,11 @@ Built with these excellent open-source projects:
 
 ---
 
-## 📞 Support
-
-- 📖 **Documentation**: Read the [full documentation](https://github.com/yourusername/container-pool-paas)
-- 🐛 **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/container-pool-paas/issues)
-- 💬 **Discussions**: Join the conversation in [Discussions](https://github.com/yourusername/container-pool-paas/discussions)
-- 📧 **Email**: contact@example.com
-
----
-
 <div align="center">
 
-**⭐ Star this repo if you find it useful!**
+**Star this repo if you find it useful!**
 
-Made with ❤️ for the DevOps community
+Made with care for the DevOps community
 
 [Report Bug](https://github.com/yourusername/container-pool-paas/issues) · [Request Feature](https://github.com/yourusername/container-pool-paas/issues) · [Documentation](https://github.com/yourusername/container-pool-paas/wiki)
 
