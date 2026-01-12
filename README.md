@@ -82,17 +82,73 @@ Container Pool PaaS is an educational platform demonstrating modern infrastructu
 
 ```mermaid
 graph TB
-    A[Host Linux] --> B[KVM/libvirt]
-    B --> C[Ubuntu 22.04 VM]
-    C --> D[Docker Engine]
-    D --> E[Container Pool]
-    C --> F[Flask Backend]
-    F --> G[SQLite DB]
-    
-    style A fill:#e1f5ff
-    style C fill:#fff4e1
-    style D fill:#e8f5e9
-    style F fill:#f3e5f5
+    subgraph "Layer 1: Host"
+        Host[Linux Host<br/>Arch/Ubuntu/RHEL]
+        Vagrant[Vagrant + libvirt]
+        Ansible[Ansible]
+    end
+
+    subgraph "Layer 2: Virtual Machine"
+        VM[Ubuntu 22.04 VM<br/>192.168.121.183<br/>2GB RAM, 2 CPU]
+    end
+
+    subgraph "Layer 3: System Services"
+        SD[systemd]
+        PaaS[paas-app.service<br/>Flask on :5000]
+        Mon[container-monitor.timer<br/>Every 30 seconds]
+    end
+
+    subgraph "Layer 4: Application"
+        Flask[app.py<br/>Routes, Models, Logic]
+        Pool[pool_manager.py<br/>Pool CLI]
+        Monitor[container_monitor.py<br/>Health & Recovery]
+    end
+
+    subgraph "Layer 5: Data"
+        DB[(SQLite<br/>paas_platform.db)]
+        Files[/User Files<br/>user_files/]
+    end
+
+    subgraph "Layer 6: Docker"
+        Docker[Docker Engine]
+        
+        subgraph "Pool Containers"
+            N1[nginx x5<br/>:8000-8004]
+            A1[apache x3<br/>:8100-8102]
+            P1[python x3<br/>:8200-8202]
+            No1[node x2<br/>:8300-8301]
+            S1[ubuntu-ssh x2<br/>:2200-2201]
+        end
+    end
+
+    subgraph "Layer 7: Users"
+        Browser[Web Browser]
+        SSH[SSH Client]
+    end
+
+    Host --> Vagrant
+    Host --> Ansible
+    Vagrant --> VM
+    Ansible --> VM
+    VM --> SD
+    SD --> PaaS
+    SD --> Mon
+    PaaS --> Flask
+    Mon --> Monitor
+    Flask --> DB
+    Flask --> Files
+    Flask --> Docker
+    Monitor --> Docker
+    Monitor --> DB
+    Pool --> Docker
+    Docker --> N1
+    Docker --> A1
+    Docker --> P1
+    Docker --> No1
+    Docker --> S1
+    Browser --> Flask
+    Browser --> N1
+    SSH --> S1
 ```
 
 | Layer | Technology |
